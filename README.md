@@ -3,7 +3,7 @@
 **Claim what you are legally owed.** HaqDaar reads your documents, checks them against the law and your agreements, estimates what you may be owed with the working shown, writes the formal letters and complaints, and tracks every deadline until you are paid.
 
 - **Live app:** _add your Vercel link here_
-- **API:** _add your Render link here_ (health check: `/api/health`)
+- **API:** _add your API link here_ (health check: `/api/health`)
 - **Demo video:** _add your video link here_
 - **Try it with sample documents:** [`demo-documents/`](demo-documents/) has made-up files for all three case types, with the expected results.
 
@@ -56,7 +56,7 @@ Three case types are live: **job exit and final settlement**, **cancelled, delay
 | Backend | Node.js 22, Express, Mongoose, Zod, Multer, pdf.js (pdfjs-dist), PDFKit, JWT, bcrypt, Helmet, express-rate-limit |
 | Database | MongoDB Atlas |
 | AI | Optional, for document reading only: OpenRouter (default model Claude Haiku 5.5), Gemini or the Anthropic API. A built-in pattern reader works with no key. |
-| Hosting | Vercel (frontend), Render (API) |
+| Hosting | Vercel (frontend and API) |
 
 ## Architecture
 
@@ -151,11 +151,15 @@ Secrets are never committed: `.env` files are git-ignored and only `.env.example
 
 ## Deployment
 
-**API on Render:** New → Blueprint → select this repository (uses `render.yaml`), or create a Web Service with root directory `server`, build command `npm ci`, start command `npm run seed && npm start`. Set `MONGODB_URI`, `CLIENT_ORIGIN` (your Vercel URL, e.g. `https://haqdaar.vercel.app`), `OPENROUTER_API_KEY`, `ADMIN_EMAIL` and `ADMIN_PASSWORD`; `JWT_SECRET` is generated for you. The free tier sleeps when idle, so the first request after a pause can take up to a minute; the app shows a "server is waking up" message.
+Both parts run on Vercel as two projects from this repository.
 
-**Frontend on Vercel:** import the repository, set the root directory to `client` (framework preset: Vite), and add `VITE_API_URL=https://<your-render-app>.onrender.com/api`. `vercel.json` handles client-side routing.
+**API:** import the repository, set the root directory to `server` and the framework preset to Other. `server/vercel.json` sends every request to `api/index.js`, which runs the Express app as a function. Add `MONGODB_URI`, `JWT_SECRET` (at least 32 characters), `CLIENT_ORIGIN` (your frontend URL, e.g. `https://haqdaar.vercel.app`) and `NODE_ENV=production`; for AI document reading also set `LLM_PROVIDER` and its key. Vercel rejects request bodies over 4.5 MB, so uploads are limited to 4 MB per request.
 
-In MongoDB Atlas, allow network access from `0.0.0.0/0` so Render can connect.
+**Seed the database once** from your machine before the first visit (and again after changing the seed files): put `MONGODB_URI` (and `ADMIN_EMAIL` / `ADMIN_PASSWORD` for an admin account) in `server/.env`, then run `npm run seed` in `server`. Seeding is idempotent.
+
+**Frontend:** import the repository again, set the root directory to `client` (framework preset: Vite), and add `VITE_API_URL=https://<your-api-project>.vercel.app/api`. `client/vercel.json` handles client-side routing.
+
+In MongoDB Atlas, allow network access from `0.0.0.0/0`, since Vercel functions do not have fixed IP addresses.
 
 ## Legal sources encoded
 

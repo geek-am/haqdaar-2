@@ -9,7 +9,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
   const app = express();
-  app.set('trust proxy', 1); // Render/Vercel sit behind a proxy; needed for correct rate limiting.
+  app.set('trust proxy', 1); // Vercel sits behind a proxy; needed for correct rate limiting.
   app.use(helmet());
   app.use(cors({
     origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)),
