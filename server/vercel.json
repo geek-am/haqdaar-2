@@ -1,0 +1,12 @@
+{
+  "framework": null,
+  "buildCommand": "mkdir -p public",
+  "outputDirectory": "public",
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60,
+      "includeFiles": "node_modules/{pdfkit/js/data,pdfjs-dist/legacy/build,pdfjs-dist/standard_fonts}/**"
+    }
+  }
+}

@@ -5,7 +5,8 @@ import { useUploadDocs } from '../../api/hooks';
 import { errorMessage } from '../../api/client';
 import { Spinner } from '../ui/Feedback';
 
-const MAX = 5 * 1024 * 1024;
+// The API runs on Vercel, which rejects request bodies over 4.5 MB, so the limit is for all files together.
+const MAX = 4 * 1024 * 1024;
 
 export default function DocumentsPanel({ caseData, editable }) {
   const upload = useUploadDocs(caseData.id);
@@ -19,8 +20,9 @@ export default function DocumentsPanel({ caseData, editable }) {
     const next = [...files];
     for (const f of list) {
       if (!['application/pdf', 'text/plain'].includes(f.type)) { toast.error(`${f.name} is not a PDF or .txt file.`); continue; }
-      if (f.size > MAX) { toast.error(`${f.name} is over 5 MB.`); continue; }
+      if (f.size > MAX) { toast.error(`${f.name} is over 4 MB.`); continue; }
       if (next.length >= 5) { toast.error('Add up to 5 files at a time.'); break; }
+      if (next.reduce((sum, x) => sum + x.size, f.size) > MAX) { toast.error(`Adding ${f.name} would go over 4 MB in total. Upload it separately.`); continue; }
       next.push(f);
     }
     setFiles(next);
@@ -70,7 +72,7 @@ export default function DocumentsPanel({ caseData, editable }) {
           >
             <UploadCloud className="h-8 w-8 mx-auto text-glacier-700" />
             <p className="mt-3 font-medium">Drop PDFs here</p>
-            <p className="text-sm text-steel">PDF or .txt, up to 5 MB each</p>
+            <p className="text-sm text-steel">PDF or .txt, up to 4 MB in total</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <button type="button" className="btn-ghost h-10" onClick={() => input.current?.click()}>Choose files</button>
               <button type="button" className="btn-ghost h-10" onClick={() => setShowPaste((v) => !v)}>{showPaste ? 'Hide text box' : 'Paste text instead'}</button>
